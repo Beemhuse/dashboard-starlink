@@ -1,90 +1,40 @@
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { ArrowLeft, MapPin, Users, Key, Wifi, Clock, Edit } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { AreaSubscribersList } from "@/components/area-subscribers-list"
-import { AreaPasswordsList } from "@/components/area-passwords-list"
 
-// This would normally come from your database
-const getServiceArea = (id) => {
-  const serviceAreas = [
-    {
-      id: "area-001",
-      name: "Downtown Station",
-      location: "123 Main St, Downtown",
-      description:
-        "Our main Starlink station located in the heart of downtown, providing high-speed internet to the business district.",
-      coordinates: "40.7128° N, 74.0060° W",
-      activeUsers: 45,
-      totalPasswords: 50,
-      availablePasswords: 5,
-      status: "active",
-      createdAt: "2023-01-15",
-      lastMaintenance: "2023-09-20",
-      averageSpeed: "150 Mbps",
-      maxConnections: 75,
-    },
-    {
-      id: "area-002",
-      name: "Westside Hub",
-      location: "456 West Ave, Westside",
-      description: "Serving the residential areas on the west side of town with reliable Starlink connectivity.",
-      coordinates: "40.7128° N, 74.0160° W",
-      activeUsers: 32,
-      totalPasswords: 40,
-      availablePasswords: 8,
-      status: "active",
-      createdAt: "2023-02-10",
-      lastMaintenance: "2023-08-15",
-      averageSpeed: "120 Mbps",
-      maxConnections: 50,
-    },
-    {
-      id: "area-003",
-      name: "North Terminal",
-      location: "789 North Blvd, Northside",
-      description: "Our northern terminal providing coverage to suburban areas and small businesses.",
-      coordinates: "40.7228° N, 74.0060° W",
-      activeUsers: 28,
-      totalPasswords: 30,
-      availablePasswords: 2,
-      status: "active",
-      createdAt: "2023-03-05",
-      lastMaintenance: "2023-09-01",
-      averageSpeed: "135 Mbps",
-      maxConnections: 40,
-    },
-    {
-      id: "area-004",
-      name: "East Station",
-      location: "321 East St, Eastside",
-      description: "Currently under maintenance. This station serves the eastern industrial zone.",
-      coordinates: "40.7128° N, 73.9960° W",
-      activeUsers: 0,
-      totalPasswords: 25,
-      availablePasswords: 25,
-      status: "maintenance",
-      createdAt: "2023-04-20",
-      lastMaintenance: "2023-10-01",
-      averageSpeed: "0 Mbps",
-      maxConnections: 35,
-    },
-  ]
 
-  const area = serviceAreas.find((area) => area.id === id)
-  if (!area) return null
-  return area
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, MapPin, Users, Key, Wifi, Clock, Edit } from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/api/firebase"; // Import your Firebase database instance
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { AreaSubscribersList } from "@/components/area-subscribers-list";
+import { AreaPasswordsList } from "@/components/area-passwords-list";
+
+async function getServiceArea(id) {
+  try {
+    const serviceAreaDocRef = doc(db, "serviceAreas", id);
+    const docSnap = await getDoc(serviceAreaDocRef);
+
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching service area:", error);
+    return null;
+  }
 }
 
 export default async function ServiceAreaDetailsPage({ params }) {
-  const area = getServiceArea(params.id)
+  const area = await getServiceArea(params.id);
 
   if (!area) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -97,17 +47,17 @@ export default async function ServiceAreaDetailsPage({ params }) {
           </Link>
         </Button>
         <h2 className="text-3xl font-bold tracking-tight">{area.name}</h2>
-        {area.status === "active" ? (
+        {/* {area.status === "active" ? (
           <Badge className="bg-green-500">Active</Badge>
         ) : (
-          <Badge variant="outline">Maintenance</Badge>
-        )}
-        <div className="ml-auto">
+          <Badge variant="outline">{area.status || "Inactive"}</Badge>
+        )} */}
+        {/* <div className="ml-auto">
           <Button variant="outline" size="sm">
             <Edit className="mr-2 h-4 w-4" />
-            Edit Area
+            Edit Area 
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <div className="flex items-center text-sm text-muted-foreground">
@@ -119,15 +69,15 @@ export default async function ServiceAreaDetailsPage({ params }) {
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{area.activeUsers}</div>
-            <p className="text-xs text-muted-foreground">Out of {area.maxConnections} max connections</p>
+            <div className="text-2xl font-bold">{area.activeUsers || 0}</div>
+            <p className="text-xs text-muted-foreground">Out of {area.maxConnections || "N/A"} max connections</p>
           </CardContent>
         </Card>
 
@@ -138,7 +88,7 @@ export default async function ServiceAreaDetailsPage({ params }) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {area.availablePasswords}/{area.totalPasswords}
+              {area.availablePasswords || 0}/{area.totalPasswords || 0}
             </div>
             <p className="text-xs text-muted-foreground">Passwords ready to assign</p>
           </CardContent>
@@ -146,26 +96,26 @@ export default async function ServiceAreaDetailsPage({ params }) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Speed</CardTitle>
+            <CardTitle className="text-sm font-medium">Passwords Expiring Soon</CardTitle>
             <Wifi className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{area.averageSpeed}</div>
+            <div className="text-2xl font-bold">{area.averageSpeed || "N/A"}</div>
             <p className="text-xs text-muted-foreground">Current network performance</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Maintenance</CardTitle>
+            <CardTitle className="text-sm font-medium"> New Subscriptions This Period</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{area.lastMaintenance}</div>
-            <p className="text-xs text-muted-foreground">Area created on {area.createdAt}</p>
+            <div className="text-2xl font-bold">{area.lastMaintenance || "N/A"}</div>
+            <p className="text-xs text-muted-foreground">Area created on {area.createdAt || "N/A"}</p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       <Card>
         <CardHeader>
@@ -186,18 +136,18 @@ export default async function ServiceAreaDetailsPage({ params }) {
         </Button>
       </div>
 
-      <Tabs defaultValue="subscribers" className="space-y-4">
+      <Tabs defaultValue="passwords" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="subscribers">Active Subscribers</TabsTrigger>
+          {/* <TabsTrigger value="subscribers">Active Subscribers</TabsTrigger> */}
           <TabsTrigger value="passwords">Passwords</TabsTrigger>
         </TabsList>
         <TabsContent value="subscribers" className="space-y-4">
-          <AreaSubscribersList areaId={area.id} />
+          <AreaSubscribersList areaId={area.id} /> {/* You'll need to update this component to fetch data */}
         </TabsContent>
         <TabsContent value="passwords" className="space-y-4">
-          <AreaPasswordsList areaId={area.id} />
+          <AreaPasswordsList areaId={area.id} /> {/* You'll need to update this component to fetch data */}
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

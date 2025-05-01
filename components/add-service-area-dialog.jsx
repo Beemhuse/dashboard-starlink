@@ -1,13 +1,15 @@
-"use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { MapPin } from "lucide-react"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { MapPin } from "lucide-react";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../api/firebase"; 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,10 +18,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "react-hot-toast"; 
+import { Loader2 } from "lucide-react"; // For loading indicator
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -30,11 +42,12 @@ const formSchema = z.object({
   }),
   description: z.string().optional(),
   coordinates: z.string().optional(),
-})
+});
 
 export function AddServiceAreaDialog() {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -43,16 +56,34 @@ export function AddServiceAreaDialog() {
       location: "",
       description: "",
       coordinates: "",
+     
     },
-  })
+  });
 
-  function onSubmit(values) {
-    // In a real app, you would send this data to your API
-    console.log(values)
-
-    // Close the dialog and refresh the page
-    setOpen(false)
-    router.refresh()
+  async function onSubmit(values) {
+    setIsLoading(true);
+    try {
+      const serviceAreasCollectionRef = collection(db, "serviceAreas"); // Create a 'serviceAreas' collection
+      await addDoc(serviceAreasCollectionRef, values);
+      toast.success({
+       
+        title: "Success!",
+        description: "Service area created successfully.",
+      });
+      form.reset();
+      window.location.reload(); // Reload the page to reflect changes
+      setOpen(false);
+      router.refresh(); // Re-fetch server components
+    } catch (error) {
+      console.error("Error creating service area:", error);
+      toast.error({
+      
+        title: "Error!",
+        description: "Failed to create service area. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -66,7 +97,9 @@ export function AddServiceAreaDialog() {
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Add New Service Area</DialogTitle>
-          <DialogDescription>Create a new Starlink service area for your customers.</DialogDescription>
+          <DialogDescription>
+            Create a new Starlink service area for your customers.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -79,7 +112,9 @@ export function AddServiceAreaDialog() {
                   <FormControl>
                     <Input placeholder="Downtown Station" {...field} />
                   </FormControl>
-                  <FormDescription>A descriptive name for this service area.</FormDescription>
+                  <FormDescription>
+                    A descriptive name for this service area.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -93,7 +128,9 @@ export function AddServiceAreaDialog() {
                   <FormControl>
                     <Input placeholder="123 Main St, Downtown" {...field} />
                   </FormControl>
-                  <FormDescription>The physical address of this service area.</FormDescription>
+                  <FormDescription>
+                    The physical address of this service area.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -129,11 +166,14 @@ export function AddServiceAreaDialog() {
               )}
             />
             <DialogFooter>
-              <Button type="submit">Create Service Area</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Service Area
+              </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

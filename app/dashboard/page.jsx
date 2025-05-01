@@ -1,8 +1,15 @@
+"use client"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardStats } from "@/components/dashboard-stats"
 import { SubscriptionTable } from "@/components/subscription-table"
+import checkAndUpdateExpiredPasswords from "@/lib/checkAndUpdateExpiredPasswords"
+import { useEffect } from "react"
 
 export default function DashboardPage() {
+  useEffect(() => {
+    // Check and update expired passwords
+    checkAndUpdateExpiredPasswords()
+  }, [])
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -11,17 +18,20 @@ export default function DashboardPage() {
 
       <DashboardStats />
 
-      <Tabs defaultValue="active" className="space-y-4">
+      <Tabs defaultValue="recent" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="active">Active Subscriptions</TabsTrigger>
-          <TabsTrigger value="expiring">Expiring Soon</TabsTrigger>
+          <TabsTrigger value="recent">Recent Subscriptions</TabsTrigger>
+          {/* <TabsTrigger value="expiring">Expiring Soon</TabsTrigger>
           <TabsTrigger value="expired">Expired</TabsTrigger>
-          <TabsTrigger value="revoked">Revoked</TabsTrigger>
+          <TabsTrigger value="revoked">Revoked</TabsTrigger> */}
         </TabsList>
-        <TabsContent value="active" className="space-y-4">
+        <TabsContent value="recent" className="space-y-4">
           <SubscriptionTable status="active" />
         </TabsContent>
-        <TabsContent value="expiring" className="space-y-4">
+        {/* <TabsContent value="active" className="space-y-4">
+          <SubscriptionTable status="active" />
+        </TabsContent> */}
+        {/* <TabsContent value="expiring" className="space-y-4">
           <SubscriptionTable status="expiring" />
         </TabsContent>
         <TabsContent value="expired" className="space-y-4">
@@ -29,7 +39,7 @@ export default function DashboardPage() {
         </TabsContent>
         <TabsContent value="revoked" className="space-y-4">
           <SubscriptionTable status="revoked" />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   )

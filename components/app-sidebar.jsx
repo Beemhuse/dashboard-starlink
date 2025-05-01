@@ -23,21 +23,21 @@ const sidebarLinks = [
     href: "/passwords",
     icon: Key,
   },
-  {
-    title: "Subscribers",
-    href: "/subscribers",
-    icon: Users,
-  },
-  {
-    title: "Subscriptions",
-    href: "/subscriptions",
-    icon: Clock,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Subscribers",
+  //   href: "/subscribers",
+  //   icon: Users,
+  // },
+  // {
+  //   title: "Subscriptions",
+  //   href: "/subscriptions",
+  //   icon: Clock,
+  // },
+  // {
+  //   title: "Settings",
+  //   href: "/settings",
+  //   icon: Settings,
+  // },
 ]
 
 export function AppSidebar() {
